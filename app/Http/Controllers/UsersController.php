@@ -94,11 +94,11 @@ class UsersController extends Controller
      */
     public function show(string $id)
     {
-
+        $userAuth = Auth::user();
         $user = User::find($id);
 
-        if (!$user->can('view users')) {
-            abort(403, 'No tienes permiso para ver la lista de usuarios.');
+        if (!$userAuth->can('view users')) {
+            abort(403, 'No tienes permiso para editar al usuario');
         }
 
         $user->load('roles');
@@ -127,12 +127,12 @@ class UsersController extends Controller
     public function update(Request $request, string $id)
     {
 
-
-        $user = User::find($id);
-        if (!$user->can('view users')) {
+        $userAuth = Auth::user();
+        if (!$userAuth->can('view users')) {
             abort(403, 'No tienes permiso para ver la lista de usuarios.');
         }
 
+        $user = User::find($id);
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => 'required|email|unique:users,email,' . $user->id,
@@ -142,7 +142,6 @@ class UsersController extends Controller
         ]);
 
         try {
-
             $user->update($data);
 
             $user->syncRoles($data['selectedRoles'] ?? []);
@@ -163,11 +162,12 @@ class UsersController extends Controller
     {
         try {
 
-            $user = User::find($id);
-            if (!$user->can('view users')) {
+            $userAuth = Auth::user();
+            if (!$userAuth->can('view users')) {
                 abort(403, 'No tienes permiso para ver la lista de usuarios.');
             }
 
+            $user = User::find($id);
             $user->delete();
 
             return redirect()->route('users.index')
